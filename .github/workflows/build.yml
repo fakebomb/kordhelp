@@ -25,7 +25,8 @@ jobs:
           libncurses6 \
           cmake \
           libffi-dev \
-          libssl-dev
+          libssl-dev \
+          python3-distutils
 
     - name: Install Buildozer dependencies
       run: |
@@ -42,7 +43,6 @@ jobs:
 
     - name: Initialize Buildozer
       run: |
-        # Видаляємо старий файл, якщо він існує
         [ -f buildozer.spec ] && rm buildozer.spec
         buildozer init
 
