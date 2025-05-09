@@ -22,9 +22,7 @@ jobs:
           python3-dev \
           openjdk-17-jdk \
           zlib1g-dev \
-          libncurses5-dev \
-          libncursesw5-dev \
-          libtinfo5 \
+          libncurses5 \
           cmake \
           libffi-dev \
           libssl-dev
@@ -53,4 +51,4 @@ jobs:
         echo "package.name = kordhelp" >> buildozer.spec
         echo "package.domain = org.test" >> buildozer.spec
         echo "source.dir = ." >> buildozer.spec
-        echo "source.include_exts = py,png,jpg,kv,db,json,txt" >> buildozer.spec
+        echo "source.include_exts = py,png
