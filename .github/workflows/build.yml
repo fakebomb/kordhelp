@@ -5,10 +5,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v3.1
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
@@ -42,11 +42,12 @@ jobs:
 
     - name: Initialize Buildozer
       run: |
+        # Видаляємо старий файл, якщо він існує
+        [ -f buildozer.spec ] && rm buildozer.spec
         buildozer init
 
     - name: Configure buildozer.spec
       run: |
-        # Перезаписуємо файл, щоб уникнути дублювання секцій
         echo "[app]" > buildozer.spec
         echo "title = KordHelp" >> buildozer.spec
         echo "package.name = kordhelp" >> buildozer.spec
