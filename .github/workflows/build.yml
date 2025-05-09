@@ -60,8 +60,10 @@ jobs:
         mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest || (echo "Failed to rename cmdline-tools to latest" && exit 1)
         # Перевіряємо наявність sdkmanager
         ls -la android-sdk/cmdline-tools/latest/bin/sdkmanager || (echo "sdkmanager not found in expected path" && exit 1)
+        # Приймаємо ліцензії
+        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk --licenses || (echo "Failed to accept licenses" && exit 1)
         # Оновлюємо SDK
-        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk "platform-tools" "build-tools;33.0.0" "platforms;android-33" "extras;android;m2repository" "extras;google;m2repository" || (echo "Failed to run sdkmanager" && exit 1)
+        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk "platform-tools" "build-tools;36.0.0" "platforms;android-33" "extras;android;m2repository" "extras;google;m2repository" || (echo "Failed to run sdkmanager" && exit 1)
         # Перевіряємо, чи встановлено компоненти
         ls -la android-sdk/build-tools
         # Додаємо SDK до PATH
