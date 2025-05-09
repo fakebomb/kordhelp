@@ -14,6 +14,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        pip install --upgrade pip
         pip install buildozer cython
         sudo apt-get update
         sudo apt-get install -y \
@@ -29,7 +30,7 @@ jobs:
           unzip \
           autoconf \
           libtool
-    
+
     - name: Install Buildozer dependencies
       run: |
         sudo pip3 install --upgrade pip
@@ -43,13 +44,13 @@ jobs:
           libswscale-dev \
           libavformat-dev \
           libavcodec-dev
-          
+
     - name: Setup directories
       run: |
         mkdir -p $HOME/.buildozer
         mkdir -p $HOME/.buildozer/android/platform
         mkdir -p $HOME/.buildozer/android/platform/build-tools
-        
+
     - name: Cache Buildozer dependencies
       uses: actions/cache@v3
       with:
@@ -63,47 +64,47 @@ jobs:
       run: |
         # Download Android Command Line Tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        
+
         # Create directory structure
         mkdir -p android-sdk/cmdline-tools
         unzip commandlinetools-linux-11076708_latest.zip -d android-sdk/cmdline-tools
         mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
         rm commandlinetools-linux-11076708_latest.zip
-        
+
         # Set environment variables
         echo "ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
         echo "PATH=$GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin:$GITHUB_WORKSPACE/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
-        
+
         # Accept licenses and install SDK components
-        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk --licenses
-        android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk \
+        yes | $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk --licenses
+        $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk \
           "platform-tools" \
           "build-tools;33.0.2" \
           "platforms;android-33" \
           "ndk;25.2.9519653" \
           "cmake;3.22.1"
-        
+
         # Create tools/bin directory for backwards compatibility
         mkdir -p $GITHUB_WORKSPACE/android-sdk/tools/bin
         ln -sf $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager $GITHUB_WORKSPACE/android-sdk/tools/bin/sdkmanager
-        
+
         # Verify installation
         ls -la $GITHUB_WORKSPACE/android-sdk
         echo "PATH: $PATH"
-    
+
     - name: Setup Python-for-Android
       run: |
         git clone https://github.com/kivy/python-for-android.git $HOME/.buildozer/android/platform/python-for-android
         cd $HOME/.buildozer/android/platform/python-for-android
         git checkout master
         cd ~
-    
+
     - name: Initialize Buildozer
       run: |
         [ -f buildozer.spec ] && rm buildozer.spec
         buildozer init
-    
+
     - name: Configure buildozer.spec
       run: |
         cat << EOF > buildozer.spec
@@ -135,7 +136,7 @@ android.api = 33
 android.minapi = 21
 android.sdk = 33
 android.ndk = 25.2.9519653
-android.ndk_api = 21
+android.ndk_path = $GITHUB_WORKSPACE/android-sdk/ndk/25.2.9519653
 android.accept_sdk_license = True
 android.skip_update = True
 
@@ -148,10 +149,11 @@ android.build_tools = 33.0.2
 # Bootstrap to use
 p4a.bootstrap = sdl2
 
-# Advanced settings
+# Enable detailed logging
 log_level = 2
+
 EOF
-    
+
     - name: Create a simple Kivy app
       run: |
         cat << EOF > main.py
@@ -165,7 +167,7 @@ class KordHelpApp(App):
 if __name__ == '__main__':
     KordHelpApp().run()
 EOF
-    
+
     - name: Build APK
       run: |
         export ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk
@@ -173,19 +175,19 @@ EOF
         export ANDROIDNDK=$GITHUB_WORKSPACE/android-sdk/ndk/25.2.9519653
         export ANDROIDAPI=33
         export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        
+
         # Debug info
         echo "ANDROID_HOME: $ANDROID_HOME"
         echo "ANDROIDSDK: $ANDROIDSDK"
         echo "ANDROIDNDK: $ANDROIDNDK"
         echo "PATH: $PATH"
-        
+
         # Build with verbose output
         buildozer -v android debug
-        
+
         # Check if APK was created
         ls -la bin/
-    
+
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
