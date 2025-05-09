@@ -104,11 +104,10 @@ jobs:
         echo "android.build_tools = 34.0.0" >> buildozer.spec
         echo "android.cmdline_tools_path = $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin" >> buildozer.spec
         echo "android.skip_update = True" >> buildozer.spec
-        # Встановлюємо шлях до python-for-android
+        # Використовуємо правильні шляхи та налаштування
         echo "p4a.source_dir = $HOME/.buildozer/android/platform/python-for-android" >> buildozer.spec
-        # Встановлюємо рецепт для бази даних (sqlite3)
+        echo "p4a.bootstrap = sdl2" >> buildozer.spec
         echo "android.recipes_dir = $HOME/.buildozer/android/platform/python-for-android/recipes" >> buildozer.spec
-        echo "android.bootstrap = sdl2" >> buildozer.spec
         echo "log_level = 2" >> buildozer.spec
     
     - name: Setup Python-for-Android
