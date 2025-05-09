@@ -61,9 +61,10 @@ jobs:
       run: |
         buildozer android debug
         ls -la bin/  # Перевіряємо вміст папки bin
+        if [ -f "bin/kordhelp-*.apk" ]; then echo "APK found"; else echo "APK not found"; fi
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v3
       with:
         name: kordhelp-apk
         path: bin/*.apk
