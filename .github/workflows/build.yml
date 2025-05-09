@@ -14,7 +14,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install buildozer
+        pip install buildozer cython
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
