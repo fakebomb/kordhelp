@@ -5,12 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '4.x'
 
     - name: Install dependencies
       run: |
@@ -64,7 +64,7 @@ jobs:
         if [ -f "bin/kordhelp-*.apk" ]; then echo "APK found"; else echo "APK not found"; fi
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: kordhelp-apk
         path: bin/*.apk
