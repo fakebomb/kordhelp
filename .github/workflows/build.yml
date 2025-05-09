@@ -26,11 +26,14 @@ jobs:
           cmake \
           libffi-dev \
           libssl-dev \
-          unzip
+          unzip \
+          autoconf \
+          libtool
     
     - name: Install Buildozer dependencies
       run: |
-        sudo pip3 install buildozer
+        sudo pip3 install --upgrade pip
+        sudo pip3 install --upgrade buildozer
         sudo apt-get install -y \
           libsdl2-dev \
           libsdl2-image-dev \
@@ -40,46 +43,61 @@ jobs:
           libswscale-dev \
           libavformat-dev \
           libavcodec-dev
-    
+          
+    - name: Setup directories
+      run: |
+        mkdir -p $HOME/.buildozer
+        mkdir -p $HOME/.buildozer/android/platform
+        mkdir -p $HOME/.buildozer/android/platform/build-tools
+        
+    - name: Cache Buildozer dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.buildozer
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
     - name: Install Android SDK
       run: |
-        # Перевіряємо наявність wget і unzip
-        which wget || (echo "wget not found" && exit 1)
-        which unzip || (echo "unzip not found" && exit 1)
+        # Download Android Command Line Tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
         
-        # Завантажуємо Android Command Line Tools
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip || (echo "Failed to download commandlinetools" && exit 1)
-        ls -la commandlinetools-linux-11076708_latest.zip
-        
-        # Розпаковуємо архів
+        # Create directory structure
         mkdir -p android-sdk/cmdline-tools
-        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk/cmdline-tools || (echo "Failed to unzip commandlinetools" && exit 1)
+        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk/cmdline-tools
+        mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
         rm commandlinetools-linux-11076708_latest.zip
         
-        # Перевіряємо структуру
-        ls -la android-sdk/cmdline-tools
-        find android-sdk -type f -name "sdkmanager"
-        
-        # Припускаємо, що sdkmanager у вкладеній директорії
-        mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest || (echo "Failed to rename cmdline-tools to latest" && exit 1)
-        
-        # Перевіряємо наявність sdkmanager
-        ls -la android-sdk/cmdline-tools/latest/bin/sdkmanager || (echo "sdkmanager not found in expected path" && exit 1)
-        
-        # Приймаємо всі ліцензії через порожній пайп
-        echo "y" | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk --licenses > /dev/null 2>&1 || true
-        echo "y" | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk --update || true
-        
-        # Використовуємо стабільну версію build-tools замість 36.0.0
-        echo "y" | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk "platform-tools" "build-tools;34.0.0" "platforms;android-33" "extras;android;m2repository" "extras;google;m2repository" || (echo "Failed to run sdkmanager (install)" && exit 1)
-        
-        # Перевіряємо, чи встановлено компоненти
-        ls -la android-sdk/build-tools || echo "Build tools directory not found"
-        
-        # Додаємо SDK до PATH
+        # Set environment variables
+        echo "ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
-        echo "$GITHUB_WORKSPACE/android-sdk/platform-tools" >> $GITHUB_PATH
-        echo "$GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "PATH=$GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin:$GITHUB_WORKSPACE/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+        
+        # Accept licenses and install SDK components
+        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk --licenses
+        android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk \
+          "platform-tools" \
+          "build-tools;33.0.2" \
+          "platforms;android-33" \
+          "ndk;25.2.9519653" \
+          "cmake;3.22.1"
+        
+        # Create tools/bin directory for backwards compatibility
+        mkdir -p $GITHUB_WORKSPACE/android-sdk/tools/bin
+        ln -sf $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager $GITHUB_WORKSPACE/android-sdk/tools/bin/sdkmanager
+        
+        # Verify installation
+        ls -la $GITHUB_WORKSPACE/android-sdk
+        echo "PATH: $PATH"
+    
+    - name: Setup Python-for-Android
+      run: |
+        git clone https://github.com/kivy/python-for-android.git $HOME/.buildozer/android/platform/python-for-android
+        cd $HOME/.buildozer/android/platform/python-for-android
+        git checkout master
+        cd ~
     
     - name: Initialize Buildozer
       run: |
@@ -88,61 +106,89 @@ jobs:
     
     - name: Configure buildozer.spec
       run: |
-        echo "[app]" > buildozer.spec
-        echo "title = KordHelp" >> buildozer.spec
-        echo "package.name = kordhelp" >> buildozer.spec
-        echo "package.domain = org.test" >> buildozer.spec
-        echo "source.dir = ." >> buildozer.spec
-        echo "source.include_exts = py,png,jpg,kv,db,json,txt" >> buildozer.spec
-        echo "version = 1.0" >> buildozer.spec
-        echo "requirements = python3,kivy" >> buildozer.spec
-        echo "android.permissions = INTERNET" >> buildozer.spec
-        echo "android.api = 33" >> buildozer.spec
-        # Додаємо шлях до SDK та інструментів
-        echo "android.sdk_path = $GITHUB_WORKSPACE/android-sdk" >> buildozer.spec
-        echo "android.accept_sdk_license = True" >> buildozer.spec
-        echo "android.build_tools = 34.0.0" >> buildozer.spec
-        echo "android.cmdline_tools_path = $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin" >> buildozer.spec
-        echo "android.skip_update = True" >> buildozer.spec
-        # Використовуємо правильні шляхи та налаштування
-        echo "p4a.source_dir = $HOME/.buildozer/android/platform/python-for-android" >> buildozer.spec
-        echo "p4a.bootstrap = sdl2" >> buildozer.spec
-        echo "android.recipes_dir = $HOME/.buildozer/android/platform/python-for-android/recipes" >> buildozer.spec
-        echo "log_level = 2" >> buildozer.spec
+        cat << EOF > buildozer.spec
+[app]
+# Title of your application
+title = KordHelp
+
+# Package name
+package.name = kordhelp
+
+# Package domain
+package.domain = org.test
+
+# Source code directory
+source.dir = .
+
+# Application versioning
+version = 1.0
+
+# Source code files to include
+source.include_exts = py,png,jpg,kv,db,json,txt
+
+# Application requirements
+requirements = python3,kivy
+
+# Android specific options
+android.permissions = INTERNET
+android.api = 33
+android.minapi = 21
+android.sdk = 33
+android.ndk = 25.2.9519653
+android.ndk_api = 21
+android.accept_sdk_license = True
+android.skip_update = True
+
+# SDK path
+android.sdk_path = $GITHUB_WORKSPACE/android-sdk
+
+# Build tools version
+android.build_tools = 33.0.2
+
+# Bootstrap to use
+p4a.bootstrap = sdl2
+
+# Advanced settings
+log_level = 2
+EOF
     
-    - name: Setup Python-for-Android
+    - name: Create a simple Kivy app
       run: |
-        # Створюємо директорію для buildozer
-        mkdir -p $HOME/.buildozer/android/platform
-        
-        # Клонуємо Python-for-Android
-        git clone https://github.com/kivy/python-for-android.git $HOME/.buildozer/android/platform/python-for-android
-        
-        # Перевіряємо, що директорія існує
-        ls -la $HOME/.buildozer/android/platform/python-for-android
-    
-    - name: Create symbolic links for sdkmanager
-      run: |
-        # Створюємо директорію tools для зворотної сумісності
-        mkdir -p $GITHUB_WORKSPACE/android-sdk/tools/bin
-        # Створюємо символічне посилання на sdkmanager в новому місці
-        ln -sf $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager $GITHUB_WORKSPACE/android-sdk/tools/bin/sdkmanager
-        # Перевіряємо, що посилання створено
-        ls -la $GITHUB_WORKSPACE/android-sdk/tools/bin/
+        cat << EOF > main.py
+from kivy.app import App
+from kivy.uix.label import Label
+
+class KordHelpApp(App):
+    def build(self):
+        return Label(text='Hello KordHelp!')
+
+if __name__ == '__main__':
+    KordHelpApp().run()
+EOF
     
     - name: Build APK
       run: |
-        # Встановлюємо змінні середовища для Buildozer
         export ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk
-        export PATH=$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+        export ANDROIDSDK=$GITHUB_WORKSPACE/android-sdk
+        export ANDROIDNDK=$GITHUB_WORKSPACE/android-sdk/ndk/25.2.9519653
+        export ANDROIDAPI=33
+        export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
         
-        # Відлагоджувальна інформація
+        # Debug info
         echo "ANDROID_HOME: $ANDROID_HOME"
+        echo "ANDROIDSDK: $ANDROIDSDK"
+        echo "ANDROIDNDK: $ANDROIDNDK"
         echo "PATH: $PATH"
-        echo "Перевірка наявності sdkmanager:"
-        which sdkmanager || echo "sdkmanager не знайдено в PATH"
         
-        # Спроба виконати buildozer з детальним логом
+        # Build with verbose output
         buildozer -v android debug
-        ls -la bin/  # Перевіряємо вміст папки bin
-        if [ -f "bin/kordhelp-"*".apk" ]; then echo "APK found"; else echo "APK not found"; fi
+        
+        # Check if APK was created
+        ls -la bin/
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: kordhelp-app
+        path: bin/*.apk
+        if-no-files-found: error
