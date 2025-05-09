@@ -1,0 +1,357 @@
+#:kivy 2.1.0
+#:import Factory kivy.factory.Factory
+#:import dp kivy.metrics.dp
+#:import sp kivy.metrics.sp
+
+<LoginScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(20)
+        canvas.before:
+            Color:
+                rgba: (0.1, 0.1, 0.1, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        Label:
+            text: 'Введіть пароль'
+            font_size: sp(24)
+            color: (1, 1, 1, 1)
+            size_hint_y: None
+            height: dp(40)
+        
+        TextInput:
+            id: password_input
+            hint_text: 'Пароль'
+            password: True
+            size_hint_y: None
+            height: dp(40)
+            multiline: False
+            background_color: (0.2, 0.2, 0.2, 1)
+            foreground_color: (1, 1, 1, 1)
+        
+        Button:
+            text: 'Увійти'
+            size_hint_y: None
+            height: dp(50)
+            background_normal: ''
+            background_color: (0.2, 0.4, 0.8, 1)
+            color: (1, 1, 1, 1)
+            on_press: root.check_password(password_input.text)
+        
+        Label:
+            id: message_label
+            text: ''
+            font_size: sp(16)
+            color: (1, 0, 0, 1)
+            size_hint_y: None
+            height: dp(30)
+            text_size: self.width, None
+
+<MainScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        spacing: dp(15)
+        canvas.before:
+            Color:
+                rgba: (0.1, 0.1, 0.1, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        Label:
+            id: title_label
+            text: 'Категорії'
+            font_size: sp(28)
+            color: (1, 1, 1, 1)
+            size_hint_y: None
+            height: dp(50)
+        
+        ScrollView:
+            GridLayout:
+                id: categories_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(10)
+                
+                Button:
+                    text: 'FPV'
+                    size_hint_y: None
+                    height: dp(60)
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    font_size: sp(20)
+                    background_color: (0.2, 0.4, 0.8, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.go_to_subcategories('FPV')
+                
+                Button:
+                    text: 'Mavic'
+                    size_hint_y: None
+                    height: dp(60)
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    font_size: sp(20)
+                    background_color: (0.2, 0.4, 0.8, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.go_to_subcategories('Mavic')
+                
+                Button:
+                    text: 'Вибухотехніку'
+                    size_hint_y: None
+                    height: dp(60)
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    font_size: sp(20)
+                    background_color: (0.2, 0.4, 0.8, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.go_to_subcategories('Вибухотехніку')
+                
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(20)
+                    Label:
+                        text: 'v.1.0.0'
+                        font_size: sp(12)
+                        color: (1, 1, 1, 1)
+                        text_size: self.size
+                        halign: 'left'
+                        valign: 'middle'
+                    Label:
+                        text: 'by Coyote'
+                        font_size: sp(12)
+                        color: (1, 1, 1, 1)
+                        text_size: self.size
+                        halign: 'right'
+                        valign: 'middle'
+        
+        Image:
+            id: theme_btn
+            source: 'icons/night_mode.png' if app.theme == 'day' else 'icons/day_mode.png'
+            size_hint: None, None
+            size: dp(40), dp(40)
+            pos_hint: {'right': 1, 'bottom': 1}
+            on_touch_down: if self.collide_point(*args[1].pos): app.toggle_theme()
+        
+        Image:
+            id: exit_btn
+            source: 'icons/day_exit.png' if app.theme == 'day' else 'icons/night_exit.png'
+            size_hint: None, None
+            size: dp(40), dp(40)
+            pos_hint: {'left': 0, 'bottom': 1}
+            on_touch_down: if self.collide_point(*args[1].pos): app.stop()
+
+<SubcategoriesScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        spacing: dp(15)
+        canvas.before:
+            Color:
+                rgba: (0.15, 0.15, 0.15, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        ScrollView:
+            GridLayout:
+                id: subcategories_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(10)
+        
+        Button:
+            id: back_btn
+            text: 'Назад'
+            size_hint_y: None
+            height: dp(50)
+            background_normal: ''
+            background_color: (0.2, 0.4, 0.8, 1)
+            color: (1, 1, 1, 1)
+            font_size: sp(16)
+            on_press: root.go_back()
+
+<ItemsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        spacing: dp(15)
+        canvas.before:
+            Color:
+                rgba: (0.15, 0.15, 0.15, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        TextInput:
+            id: search_input
+            hint_text: 'Пошук за назвою або тегами'
+            size_hint_y: None
+            height: dp(40)
+            multiline: False
+            background_color: (0.2, 0.2, 0.2, 1)
+            foreground_color: (1, 1, 1, 1)
+            font_size: sp(16)
+            on_text: root.on_search(self, self.text)
+        
+        ScrollView:
+            GridLayout:
+                id: items_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(10)
+        
+        Button:
+            id: back_btn
+            text: 'Назад'
+            size_hint_y: None
+            height: dp(50)
+            background_normal: ''
+            background_color: (0.2, 0.4, 0.8, 1)
+            color: (1, 1, 1, 1)
+            font_size: sp(16)
+            on_press: root.go_back()
+
+<ItemScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        spacing: dp(15)
+        canvas.before:
+            Color:
+                rgba: (0.15, 0.15, 0.15, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        Carousel:
+            id: carousel
+            direction: 'right'
+            size_hint_y: 0.3
+        
+        Label:
+            id: name_label
+            text: ''
+            font_size: sp(20)
+            color: (1, 1, 1, 1)
+            size_hint_y: None
+            height: dp(40)
+            text_size: self.width, None
+        
+        Label:
+            id: short_desc_label
+            text: ''
+            font_size: sp(16)
+            color: (0.8, 0.8, 0.8, 1)
+            size_hint_y: None
+            height: dp(30)
+            text_size: self.width, None
+        
+        ScrollView:
+            size_hint_y: 0.5
+            Label:
+                id: full_desc_label
+                text: ''
+                font_size: sp(14)
+                color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width - dp(20), None
+        
+        ScrollView:
+            size_hint_y: 0.2
+            GridLayout:
+                id: links_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(5)
+        
+        ScrollView:
+            size_hint_y: 0.5
+            GridLayout:
+                id: pdf_container
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(5)
+        
+        Button:
+            id: back_btn
+            text: 'Назад'
+            size_hint_y: None
+            height: dp(50)
+            background_normal: ''
+            background_color: (0.2, 0.4, 0.8, 1)
+            color: (1, 1, 1, 1)
+            font_size: sp(16)
+            on_press: root.go_back()
+
+<ScreenshotsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        spacing: dp(15)
+        canvas.before:
+            Color:
+                rgba: (0.15, 0.15, 0.15, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        Carousel:
+            id: screenshots_carousel
+            direction: 'right'
+            size_hint_y: 0.4
+        
+        Button:
+            id: back_btn
+            text: 'Назад'
+            size_hint_y: None
+            height: dp(50)
+            background_normal: ''
+            background_color: (0.2, 0.4, 0.8, 1)
+            color: (1, 1, 1, 1)
+            font_size: sp(16)
+            on_press: root.go_back()
+
+<Button>:
+    background_normal: ''
+    background_down: ''
+    background_color: (0, 0, 0, 0)
+    border: 0, 0, 0, 0
+    color: (1, 1, 1, 1)
+    font_size: sp(12)
+    text_size: self.size
+    halign: 'left'
+    valign: 'middle'
+    padding: [dp(10), dp(5)]
+    canvas.before:
+        Color:
+            rgba: (0.2, 0.4, 0.8, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(10)]
+    canvas:
+        Color:
+            rgba: (1, 0, 0, 1) if app.theme == 'night' else (1, 1, 1, 1)
+        Line:
+            rounded_rectangle: (self.pos[0], self.pos[1], self.size[0], self.size[1], dp(10))
+            width: 1
+    canvas.after:
+        Color:
+            rgba: (0, 0, 0, 0.3)
+        RoundedRectangle:
+            pos: [self.pos[0] + dp(2), self.pos[1] - dp(2)]
+            size: self.size
+            radius: [dp(10)]

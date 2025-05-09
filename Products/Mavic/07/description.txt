@@ -1,0 +1,3 @@
+Модернізація пультів DJI Smart 
+Controller (Enterprise) для роботи із 
+зовнішніми антенами (DJI Matrice 300)
