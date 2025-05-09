@@ -107,7 +107,7 @@ jobs:
 
     - name: Configure buildozer.spec
       run: |
-        cat << EOF > buildozer.spec
+        cat > buildozer.spec << 'EOF'
 [app]
 # Title of your application
 title = KordHelp
@@ -151,12 +151,11 @@ p4a.bootstrap = sdl2
 
 # Enable detailed logging
 log_level = 2
-
 EOF
 
     - name: Create a simple Kivy app
       run: |
-        cat << EOF > main.py
+        cat > main.py << 'EOF'
 from kivy.app import App
 from kivy.uix.label import Label
 
