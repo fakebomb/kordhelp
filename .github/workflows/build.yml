@@ -22,7 +22,7 @@ jobs:
           python3-dev \
           openjdk-17-jdk \
           zlib1g-dev \
-          libncurses5 \
+          libncurses6 \
           cmake \
           libffi-dev \
           libssl-dev
@@ -51,4 +51,19 @@ jobs:
         echo "package.name = kordhelp" >> buildozer.spec
         echo "package.domain = org.test" >> buildozer.spec
         echo "source.dir = ." >> buildozer.spec
-        echo "source.include_exts = py,png
+        echo "source.include_exts = py,png,jpg,kv,db,json,txt" >> buildozer.spec
+        echo "version = 1.0" >> buildozer.spec
+        echo "requirements = python3,kivy,sqlite3" >> buildozer.spec
+        echo "android.permissions = INTERNET" >> buildozer.spec
+        echo "android.api = 33" >> buildozer.spec
+
+    - name: Build APK
+      run: |
+        buildozer android debug
+        ls -la bin/  # Перевіряємо вміст папки bin
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3.1.2@refs/heads/v3
+      with:
+        name: kordhelp-apk
+        path: bin/*.apk
