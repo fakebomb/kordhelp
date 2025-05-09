@@ -40,6 +40,21 @@ jobs:
           libavformat-dev \
           libavcodec-dev
 
+    - name: Install Android SDK
+      run: |
+        # Завантажуємо Android Command Line Tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk
+        rm commandlinetools-linux-11076708_latest.zip
+        mkdir -p android-sdk/cmdline-tools/latest
+        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/
+        # Оновлюємо SDK
+        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk "platform-tools" "build-tools;33.0.0" "platforms;android-33" "extras;android;m2repository" "extras;google;m2repository"
+        # Додаємо SDK до PATH
+        echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
+        echo "$GITHUB_WORKSPACE/android-sdk/platform-tools" >> $GITHUB_PATH
+        echo "$GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
     - name: Initialize Buildozer
       run: |
         [ -f buildozer.spec ] && rm buildozer.spec
