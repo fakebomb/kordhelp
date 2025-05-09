@@ -49,12 +49,10 @@ jobs:
         # Завантажуємо Android Command Line Tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip || (echo "Failed to download commandlinetools" && exit 1)
         ls -la commandlinetools-linux-11076708_latest.zip
-        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk || (echo "Failed to unzip commandlinetools" && exit 1)
+        # Розпаковуємо безпосередньо в android-sdk/cmdline-tools/latest
+        mkdir -p android-sdk/cmdline-tools
+        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk/cmdline-tools/latest || (echo "Failed to unzip commandlinetools" && exit 1)
         rm commandlinetools-linux-11076708_latest.zip
-        # Видаляємо стару директорію latest, якщо вона існує
-        [ -d "android-sdk/cmdline-tools/latest" ] && rm -rf android-sdk/cmdline-tools/latest
-        mkdir -p android-sdk/cmdline-tools/latest
-        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/ || (echo "Failed to move cmdline-tools" && exit 1)
         # Перевіряємо наявність sdkmanager
         ls -la android-sdk/cmdline-tools/latest/bin/sdkmanager
         # Оновлюємо SDK
