@@ -95,7 +95,7 @@ jobs:
         echo "source.dir = ." >> buildozer.spec
         echo "source.include_exts = py,png,jpg,kv,db,json,txt" >> buildozer.spec
         echo "version = 1.0" >> buildozer.spec
-        echo "requirements = python3,kivy,sqlite3" >> buildozer.spec
+        echo "requirements = python3,kivy" >> buildozer.spec
         echo "android.permissions = INTERNET" >> buildozer.spec
         echo "android.api = 33" >> buildozer.spec
         # Додаємо шлях до SDK та інструментів
@@ -104,8 +104,23 @@ jobs:
         echo "android.build_tools = 34.0.0" >> buildozer.spec
         echo "android.cmdline_tools_path = $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin" >> buildozer.spec
         echo "android.skip_update = True" >> buildozer.spec
-        # Створюємо необхідні посилання для зворотної сумісності
+        # Встановлюємо шлях до python-for-android
         echo "p4a.source_dir = $HOME/.buildozer/android/platform/python-for-android" >> buildozer.spec
+        # Встановлюємо рецепт для бази даних (sqlite3)
+        echo "android.recipes_dir = $HOME/.buildozer/android/platform/python-for-android/recipes" >> buildozer.spec
+        echo "android.bootstrap = sdl2" >> buildozer.spec
+        echo "log_level = 2" >> buildozer.spec
+    
+    - name: Setup Python-for-Android
+      run: |
+        # Створюємо директорію для buildozer
+        mkdir -p $HOME/.buildozer/android/platform
+        
+        # Клонуємо Python-for-Android
+        git clone https://github.com/kivy/python-for-android.git $HOME/.buildozer/android/platform/python-for-android
+        
+        # Перевіряємо, що директорія існує
+        ls -la $HOME/.buildozer/android/platform/python-for-android
     
     - name: Create symbolic links for sdkmanager
       run: |
