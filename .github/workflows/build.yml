@@ -46,7 +46,8 @@ jobs:
 
     - name: Configure buildozer.spec
       run: |
-        echo "[app]" >> buildozer.spec
+        # Перезаписуємо файл, щоб уникнути дублювання секцій
+        echo "[app]" > buildozer.spec
         echo "title = KordHelp" >> buildozer.spec
         echo "package.name = kordhelp" >> buildozer.spec
         echo "package.domain = org.test" >> buildozer.spec
@@ -62,9 +63,3 @@ jobs:
         buildozer android debug
         ls -la bin/  # Перевіряємо вміст папки bin
         if [ -f "bin/kordhelp-*.apk" ]; then echo "APK found"; else echo "APK not found"; fi
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: kordhelp-apk
-        path: bin/*.apk
