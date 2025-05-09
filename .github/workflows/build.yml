@@ -98,17 +98,37 @@ jobs:
         echo "requirements = python3,kivy,sqlite3" >> buildozer.spec
         echo "android.permissions = INTERNET" >> buildozer.spec
         echo "android.api = 33" >> buildozer.spec
-        # Додаємо шлях до SDK
+        # Додаємо шлях до SDK та інструментів
         echo "android.sdk_path = $GITHUB_WORKSPACE/android-sdk" >> buildozer.spec
         echo "android.accept_sdk_license = True" >> buildozer.spec
         echo "android.build_tools = 34.0.0" >> buildozer.spec
+        echo "android.cmdline_tools_path = $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin" >> buildozer.spec
+        echo "android.skip_update = True" >> buildozer.spec
+        # Створюємо необхідні посилання для зворотної сумісності
+        echo "p4a.source_dir = $HOME/.buildozer/android/platform/python-for-android" >> buildozer.spec
+    
+    - name: Create symbolic links for sdkmanager
+      run: |
+        # Створюємо директорію tools для зворотної сумісності
+        mkdir -p $GITHUB_WORKSPACE/android-sdk/tools/bin
+        # Створюємо символічне посилання на sdkmanager в новому місці
+        ln -sf $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager $GITHUB_WORKSPACE/android-sdk/tools/bin/sdkmanager
+        # Перевіряємо, що посилання створено
+        ls -la $GITHUB_WORKSPACE/android-sdk/tools/bin/
     
     - name: Build APK
       run: |
         # Встановлюємо змінні середовища для Buildozer
         export ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk
-        export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+        export PATH=$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
         
-        buildozer android debug
+        # Відлагоджувальна інформація
+        echo "ANDROID_HOME: $ANDROID_HOME"
+        echo "PATH: $PATH"
+        echo "Перевірка наявності sdkmanager:"
+        which sdkmanager || echo "sdkmanager не знайдено в PATH"
+        
+        # Спроба виконати buildozer з детальним логом
+        buildozer -v android debug
         ls -la bin/  # Перевіряємо вміст папки bin
         if [ -f "bin/kordhelp-"*".apk" ]; then echo "APK found"; else echo "APK not found"; fi
