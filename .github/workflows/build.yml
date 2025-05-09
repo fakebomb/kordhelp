@@ -25,7 +25,8 @@ jobs:
           libncurses6 \
           cmake \
           libffi-dev \
-          libssl-dev
+          libssl-dev \
+          unzip
 
     - name: Install Buildozer dependencies
       run: |
@@ -42,14 +43,22 @@ jobs:
 
     - name: Install Android SDK
       run: |
+        # Перевіряємо наявність wget і unzip
+        which wget || (echo "wget not found" && exit 1)
+        which unzip || (echo "unzip not found" && exit 1)
         # Завантажуємо Android Command Line Tools
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip || (echo "Failed to download commandlinetools" && exit 1)
+        ls -la commandlinetools-linux-11076708_latest.zip
+        unzip commandlinetools-linux-11076708_latest.zip -d android-sdk || (echo "Failed to unzip commandlinetools" && exit 1)
         rm commandlinetools-linux-11076708_latest.zip
         mkdir -p android-sdk/cmdline-tools/latest
-        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/
+        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/ || (echo "Failed to move cmdline-tools" && exit 1)
+        # Перевіряємо наявність sdkmanager
+        ls -la android-sdk/cmdline-tools/latest/bin/sdkmanager
         # Оновлюємо SDK
-        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk "platform-tools" "build-tools;33.0.0" "platforms;android-33" "extras;android;m2repository" "extras;google;m2repository"
+        yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=android-sdk "platform-tools" "build-tools;33.0.0" "platforms;android-33" "extras;android;m2repository" "extras;google;m2repository" || (echo "Failed to run sdkmanager" && exit 1)
+        # Перевіряємо, чи встановлено компоненти
+        ls -la android-sdk/build-tools
         # Додаємо SDK до PATH
         echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
         echo "$GITHUB_WORKSPACE/android-sdk/platform-tools" >> $GITHUB_PATH
