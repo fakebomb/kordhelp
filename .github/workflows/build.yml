@@ -1,8 +1,11 @@
 name: Build APK
+
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -12,9 +15,8 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: Install system dependencies
       run: |
-        pip install buildozer
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -25,12 +27,7 @@ jobs:
           libncurses6 \
           cmake \
           libffi-dev \
-          libssl-dev
-
-    - name: Install Buildozer dependencies
-      run: |
-        sudo pip3 install buildozer
-        sudo apt-get install -y \
+          libssl-dev \
           libsdl2-dev \
           libsdl2-image-dev \
           libsdl2-mixer-dev \
@@ -40,28 +37,35 @@ jobs:
           libavformat-dev \
           libavcodec-dev
 
-    - name: Initialize Buildozer
+    - name: Install Buildozer
       run: |
-        buildozer init
+        pip install --upgrade pip
+        pip install buildozer
 
-    - name: Configure buildozer.spec
+    - name: Create buildozer.spec
       run: |
-        echo "[app]" >> buildozer.spec
-        echo "title = KordHelp" >> buildozer.spec
-        echo "package.name = kordhelp" >> buildozer.spec
-        echo "package.domain = org.test" >> buildozer.spec
-        echo "source.dir = ." >> buildozer.spec
-        echo "source.include_exts = py,png,jpg,kv,db,json,txt" >> buildozer.spec
-        echo "version = 1.0" >> buildozer.spec
-        echo "requirements = python3,kivy,sqlite3" >> buildozer.spec
-        echo "android.permissions = INTERNET" >> buildozer.spec
-        echo "android.api = 33" >> buildozer.spec
+        cat > buildozer.spec <<EOF
+[app]
+title = KordHelp
+package.name = kordhelp
+package.domain = org.test
+source.dir = .
+source.include_exts = py,png,jpg,kv,db,json,txt
+version = 1.0
+requirements = python3,kivy,sqlite3
+android.permissions = INTERNET
+android.api = 33
+android.minapi = 21
+android.ndk = 25b
+EOF
 
     - name: Build APK
       run: |
         buildozer android debug
-        ls -la bin/  # Перевіряємо вміст папки bin
-        if [ -f "bin/kordhelp-*.apk" ]; then echo "APK found"; else echo "APK not found"; fi
-        # Додатковий вивід для діагностики
-        if [ -d "bin" ]; then echo "Bin directory exists"; else echo "Bin directory does not exist"; fi
-        find . -name "*.apk"  # Шукаємо APK у всіх директоріях
+        ls -la bin/
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: kordhelp-apk
+        path: bin/*.apk
