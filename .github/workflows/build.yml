@@ -106,12 +106,14 @@ jobs:
         pip install -e .
         cd ~
 
-    - name: Initialize Buildozer
+    - name: Setup Python-for-Android
       run: |
-        # Don't delete existing buildozer.spec if it exists
-        [ ! -f buildozer.spec ] && buildozer init
+        # Use the stable branch of python-for-android
+        git clone --branch develop --single-branch https://github.com/kivy/python-for-android.git $HOME/.buildozer/android/platform/python-for-android
+        cd $HOME/.buildozer/android/platform/python-for-android
+        pip install -e .
 
-       - name: Configure buildozer.spec
+    - name: Configure buildozer.spec
       run: |
         cat > buildozer.spec << EOF
         [app]
