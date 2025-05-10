@@ -199,8 +199,8 @@ jobs:
         ls -la bin/ || echo "bin directory not found or empty"
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
-      with:
-        name: kordhelp-app
-        path: bin/*.apk
-        if-no-files-found: warn
+  uses: actions/upload-artifact@v3
+  with:
+    name: kordhelp-app
+    path: bin/*.apk
+    if-no-files-found: warn
