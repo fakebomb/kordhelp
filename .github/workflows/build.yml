@@ -111,57 +111,57 @@ jobs:
         # Don't delete existing buildozer.spec if it exists
         [ ! -f buildozer.spec ] && buildozer init
 
-    - name: Configure buildozer.spec
+       - name: Configure buildozer.spec
       run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-# Title of your application
-title = KordHelp
+        cat > buildozer.spec << EOF
+        [app]
+        # Title of your application
+        title = KordHelp
 
-# Package name
-package.name = kordhelp
+        # Package name
+        package.name = kordhelp
 
-# Package domain
-package.domain = org.test
+        # Package domain
+        package.domain = org.test
 
-# Source code directory
-source.dir = .
+        # Source code directory
+        source.dir = .
 
-# Application versioning
-version = 1.0
+        # Application versioning
+        version = 1.0
 
-# Source code files to include
-source.include_exts = py,png,jpg,kv,db,json,txt
+        # Source code files to include
+        source.include_exts = py,png,jpg,kv,db,json,txt
 
-# Application requirements
-requirements = python3,kivy
+        # Application requirements
+        requirements = python3,kivy
 
-# Android specific options
-android.permissions = INTERNET
-android.api = 30
-android.minapi = 21
-android.sdk = 30
-android.ndk = 23.1.7779620
-android.ndk_api = 21
-android.accept_sdk_license = True
-android.skip_update = False
+        # Android specific options
+        android.permissions = INTERNET
+        android.api = 30
+        android.minapi = 21
+        android.sdk = 30
+        android.ndk = 23.1.7779620
+        android.ndk_api = 21
+        android.accept_sdk_license = True
+        android.skip_update = False
 
-# SDK path and settings
-android.sdk_path = %(ANDROID_HOME)s
-android.arch = arm64-v8a armeabi-v7a
+        # SDK path and settings
+        android.sdk_path = %(ANDROID_HOME)s
+        android.arch = arm64-v8a armeabi-v7a
 
-# Build tools version
-android.build_tools = 30.0.3
+        # Build tools version
+        android.build_tools = 30.0.3
 
-# Bootstrap to use
-p4a.bootstrap = sdl2
+        # Bootstrap to use
+        p4a.bootstrap = sdl2
 
-# Advanced settings
-log_level = 2
+        # Advanced settings
+        log_level = 2
 
-# Explicitly set the NDK directory
-android.ndk_path = %(ANDROID_HOME)s/ndk/23.1.7779620
-EOF
+        # Explicitly set the NDK directory
+        android.ndk_path = %(ANDROID_HOME)s/ndk/23.1.7779620
+        EOF
 
     - name: Build APK
       run: |
