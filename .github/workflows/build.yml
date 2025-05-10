@@ -62,18 +62,14 @@ jobs:
 
     - name: Install Android SDK and NDK
       run: |
-        # Download Android Command Line Tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        # Create directory structure
         mkdir -p android-sdk/cmdline-tools
         unzip commandlinetools-linux-11076708_latest.zip -d android-sdk/cmdline-tools
         mv android-sdk/cmdline-tools/cmdline-tools android-sdk/cmdline-tools/latest
         rm commandlinetools-linux-11076708_latest.zip
-        # Set environment variables
         echo "ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_SDK_ROOT=$GITHUB_WORKSPACE/android-sdk" >> $GITHUB_ENV
         echo "PATH=$GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin:$GITHUB_WORKSPACE/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
-        # Accept licenses and install SDK components
         yes | $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk --licenses || true
         $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk \
           "platform-tools" \
@@ -81,20 +77,9 @@ jobs:
           "platforms;android-30" \
           "ndk;23.1.7779620" \
           "cmake;3.22.1"
-        # Create tools/bin directory for backwards compatibility
-        mkdir -p $GITHUB_WORKSPACE/android-sdk/tools/bin
-        ln -sf $GITHUB_WORKSPACE/android-sdk/cmdline-tools/latest/bin/sdkmanager $GITHUB_WORKSPACE/android-sdk/tools/bin/sdkmanager
-        # Copy the NDK to the location Buildozer expects
-        mkdir -p $HOME/.buildozer/android/platform
-        ln -sf $GITHUB_WORKSPACE/android-sdk/ndk/23.1.7779620 $HOME/.buildozer/android/platform/android-ndk-r23b
-        # Verify installation
-        ls -la $GITHUB_WORKSPACE/android-sdk
-        ls -la $GITHUB_WORKSPACE/android-sdk/ndk || echo "NDK directory not found"
-        ls -la $HOME/.buildozer/android/platform || echo "Platform directory empty"
 
     - name: Setup Python-for-Android
       run: |
-        # Use the stable branch of python-for-android
         git clone --branch develop --single-branch https://github.com/kivy/python-for-android.git $HOME/.buildozer/android/platform/python-for-android
         cd $HOME/.buildozer/android/platform/python-for-android
         pip install -e .
@@ -103,21 +88,13 @@ jobs:
       run: |
         cat > buildozer.spec << EOF
         [app]
-        # Title of your application
         title = KordHelp
-        # Package name
         package.name = kordhelp
-        # Package domain
         package.domain = org.test
-        # Source code directory
         source.dir = .
-        # Application versioning
         version = 1.0
-        # Source code files to include
         source.include_exts = py,png,jpg,kv,db,json,txt
-        # Application requirements
         requirements = python3,kivy
-        # Android specific options
         android.permissions = INTERNET
         android.api = 30
         android.minapi = 21
@@ -126,22 +103,16 @@ jobs:
         android.ndk_api = 21
         android.accept_sdk_license = True
         android.skip_update = False
-        # SDK path and settings
         android.sdk_path = %(ANDROID_HOME)s
         android.arch = arm64-v8a armeabi-v7a
-        # Build tools version
         android.build_tools = 30.0.3
-        # Bootstrap to use
         p4a.bootstrap = sdl2
-        # Advanced settings
         log_level = 2
-        # Explicitly set the NDK directory
         android.ndk_path = %(ANDROID_HOME)s/ndk/23.1.7779620
         EOF
 
     - name: Build APK
       run: |
-        # Set environment variables
         export ANDROID_HOME=$GITHUB_WORKSPACE/android-sdk
         export ANDROIDSDK=$GITHUB_WORKSPACE/android-sdk
         export ANDROIDNDK=$GITHUB_WORKSPACE/android-sdk/ndk/23.1.7779620
@@ -149,23 +120,7 @@ jobs:
         export ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-sdk/ndk/23.1.7779620
         export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
         export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
-        # Debug info
-        echo "ANDROID_HOME: $ANDROID_HOME"
-        echo "ANDROIDSDK: $ANDROIDSDK"
-        echo "ANDROIDNDK: $ANDROIDNDK"
-        echo "PATH: $PATH"
-        echo "JAVA_HOME: $JAVA_HOME"
-        # Check if main.py exists
-        if [ ! -f "main.py" ]; then
-          echo "Warning: main.py not found in the repository"
-          ls -la
-        fi
-        # Clean previous build artifacts (if any)
-        rm -rf .buildozer/android/app || true
-        # Build with verbose output
         buildozer -v android debug
-        # Check if APK was created
-        ls -la bin/ || echo "bin directory not found or empty"
 
     - name: Upload APK
       uses: actions/upload-artifact@v3
